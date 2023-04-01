@@ -14,24 +14,17 @@ fn handle_connection(mut stream: TcpStream) {
     let buf_reader = BufReader::new(&mut stream);
     let request_line = buf_reader.lines().next().expect("Should have next item").expect("Should be valid string");
 
-    match request_line.as_str() {
-        "GET / HTTP/1.1" => {
-            let status_line = "HTTP/1.1 200 OK";
-            let contents = fs::read_to_string("hello.html").expect("Should be able to read");
-            let response = 
-                format!("{}\r\nContent-Length: {}\r\n\r\n{}", status_line, contents.len(), contents);
+    let (status_line, filename) = 
+        match request_line.as_str() {
+            "GET / HTTP/1.1" => ("HTTP/1.1 200 OK", "hello.html"),
+            _ => ("HTTP/1.1 404 NOT FOUND", "404.html"),
+        };
 
-            stream.write_all(response.as_bytes()).expect("Should be able to write");
-        },
-        _ => {
-            let status_line = "HTTP/1.1 404 NOT FOUND";
-            let contents = fs::read_to_string("404.html").expect("Should be able to read");
-            let response = 
-                format!("{}\r\nContent-Length: {}\r\n\r\n{}", status_line, contents.len(), contents);
+    let contents = fs::read_to_string(filename).expect("Should be able to read");
+    let response = 
+        format!("{}\r\nContent-Length: {}\r\n\r\n{}", status_line, contents.len(), contents);
 
-            stream.write_all(response.as_bytes()).expect("Should be able to write");
-        },
-    }
+    stream.write_all(response.as_bytes()).expect("Should be able to write");
 }
 
 fn _print_request(buf_reader: BufReader<&mut TcpStream>) {
@@ -43,4 +36,3 @@ fn _print_request(buf_reader: BufReader<&mut TcpStream>) {
 
     println!("Request: {:#?}", http_request);
 }
-
