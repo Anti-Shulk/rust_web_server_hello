@@ -3,7 +3,7 @@ use rust_web_server_hello::ThreadPool;
 
 fn main() {
     let listener = TcpListener::bind("127.0.0.1:7878").expect("Should be valid Listener");
-    let pool = ThreadPool::new(4);
+    let pool = ThreadPool::new(1).unwrap();
 
     for stream in listener.incoming() {
         let stream = stream.expect("Should be valid stream");

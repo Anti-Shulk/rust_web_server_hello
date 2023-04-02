@@ -1,4 +1,4 @@
-use std::{thread, sync::{mpsc, Arc, Mutex}};
+use std::{thread, sync::{mpsc, Arc, Mutex}, error::Error, num::{ParseIntError, IntErrorKind}};
 
 pub struct ThreadPool {
     workers: Vec<Worker>,
@@ -12,11 +12,10 @@ impl ThreadPool {
     ///
     /// The size is the number of threads in the pool.
     /// 
-    /// # Panics
-    ///
-    /// Panics if size is zero.
-    pub fn new(size: usize) -> ThreadPool {
-        assert!(size > 0);
+    /// # Error
+    /// This function will return an Error if `size` is 0.
+    pub fn new(size: usize) -> Result<ThreadPool, IntErrorKind> {
+        if size <= 0 { return Err(IntErrorKind::Zero); }
 
         let (sender, receiver) = mpsc::channel();
 
@@ -27,7 +26,7 @@ impl ThreadPool {
             .collect();
         
 
-        ThreadPool { workers, sender: Some(sender) }
+        Ok(ThreadPool { workers, sender: Some(sender) })
     }
 
     pub fn execute<F>(&self, function: F)
