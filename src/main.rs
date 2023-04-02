@@ -1,12 +1,15 @@
 use std::{net::{TcpListener, TcpStream}, io::{BufReader, BufRead, Write}, fs, time::Duration, thread};
+use rust_web_server_hello::ThreadPool;
 
 fn main() {
     let listener = TcpListener::bind("127.0.0.1:7878").expect("Should be valid Listener");
+    let pool = ThreadPool::new(4);
+
     for stream in listener.incoming() {
         let stream = stream.expect("Should be valid stream");
-        println!("Connection established!");
-
-        handle_connection(stream);
+        pool.execute(|| {
+            handle_connection(stream);
+        });
     }
 }
 
